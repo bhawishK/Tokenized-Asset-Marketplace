@@ -1,0 +1,9 @@
+[package]
+name = "aurum"
+edition = "2024"
+license = "MIT"
+
+[addresses]
+aurum = "0x0"
+
+# Sui framework dependencies are supplied by the Testnet-compatible Sui CLI.

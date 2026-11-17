@@ -1,0 +1,35 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Expo: web",
+      "type": "shell",
+      "command": "npm.cmd run web",
+      "options": {
+        "cwd": "${workspaceFolder}/mobile"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Expo: development server",
+      "type": "shell",
+      "command": "npm.cmd start",
+      "options": {
+        "cwd": "${workspaceFolder}/mobile"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Shared domain tests",
+      "type": "shell",
+      "command": "node --test tests/domain.test.mjs mobile/tests/handoff.test.mjs",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "test",
+      "problemMatcher": []
+    }
+  ]
+}

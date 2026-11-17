@@ -1,0 +1,9 @@
+node_modules/
+.expo/
+dist/
+dist-android/
+dist-ios/
+.env.local
+.npm-cache/
+android/
+ios/

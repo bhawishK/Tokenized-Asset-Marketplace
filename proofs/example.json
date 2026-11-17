@@ -1,0 +1,8 @@
+{
+  "label": "Configuration shape only. No Testnet transaction has been run in this environment.",
+  "network": "testnet",
+  "packageId": null,
+  "marketplaceId": null,
+  "successfulPurchaseDigest": null,
+  "failureVerification": "Not run. Run scripts/prove-atomicity.mjs after deployment."
+}
