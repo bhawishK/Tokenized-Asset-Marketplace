@@ -1,5 +1,12 @@
 # Validation record
 
+## Purchase readiness fix ? 2026-11-18
+
+Reproduced a disabled Review purchase button by executing the Expo component's refresh callback with balances/inventory resolved and event history pending. The regression failed before the fix and passes after releasing the balance-loading state before the optional event lookup. The purchase card now displays its blocking reason, including configuration, connection, network read, quantity/funds/stock, pending action and issuer-as-buyer restrictions.
+
+Validation: 38 local tests pass; Expo TypeScript check and web production export pass. The local funding service's persistent record contains one confirmed claim; this is service-record evidence, not an independently fetched purchase receipt. Browser wallet signing and a real atomic purchase remain unverified in this session. Earlier entries below retain their historical results.
+
+
 ## Connected-wallet funding
 
 The frontend now reads the connected Slush address directly and requests a fixed demo claim from a local, issuer-authorized service. No buyer address is required in chat or in command-line variables. Thirty local domain/funding/HTTP/handoff tests, the Expo type check and the new web production export pass. The existing issuer CLI configuration passed a read-only preflight. Live service minting/claims and an actual purchase receipt have not yet been verified. See `docs/DEMO_FUNDING.md` and `mobile/VALIDATION.md` for the flow, limits and precise evidence.
