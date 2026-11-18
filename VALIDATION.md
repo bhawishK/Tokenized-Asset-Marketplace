@@ -1,5 +1,12 @@
 # Validation record
 
+## Wallet confirmation fix ? 2026-11-18
+
+Reproduced the pre-wallet exception with the installed SDK: calling toJSON() on the purchase PTB raised 'Sender must be set to resolve CoinWithBalance'. The Expo boundary now preserves that intent while serializing, then reconstructs the transaction in the web wallet adapter so dApp Kit supplies its connected sender and Testnet client before resolution. Transfers and redemption use the same path. Pending/error feedback scrolls into view, and a changed connection produces an explicit error rather than a silent execute return.
+
+Validation: a real SDK regression reconstructs the purchase, supplies a fixture sender, resolves payment against a mocked coin/balance transport, and confirms the resulting purchase Move call. All 39 local tests pass; Expo type check and web production export pass. No real wallet signature, Testnet purchase or purchase digest was produced by these checks.
+
+
 ## Purchase readiness fix ? 2026-11-18
 
 Reproduced a disabled Review purchase button by executing the Expo component's refresh callback with balances/inventory resolved and event history pending. The regression failed before the fix and passes after releasing the balance-loading state before the optional event lookup. The purchase card now displays its blocking reason, including configuration, connection, network read, quantity/funds/stock, pending action and issuer-as-buyer restrictions.

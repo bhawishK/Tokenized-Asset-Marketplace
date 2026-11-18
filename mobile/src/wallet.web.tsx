@@ -3,6 +3,7 @@ import { createDAppKit, DAppKitProvider, useCurrentAccount, useDAppKit } from '@
 import { ConnectButton } from '@mysten/dapp-kit-react/ui';
 import { SuiGrpcClient } from '@mysten/sui/grpc';
 import type { WalletState, ProviderProps } from './wallet.types';
+import { transactionForSigning } from './wallet-transaction';
 
 // Keep browser custom elements and wallet discovery out of the native bundle.
 const kit = createDAppKit({ networks: ['testnet'], createClient: () => new SuiGrpcClient({ network: 'testnet', baseUrl: 'https://fullnode.testnet.sui.io:443' }) });
@@ -18,7 +19,7 @@ function ConnectedProvider({ children }: ProviderProps) {
       return result.signature;
     },
     signAndExecute: async transaction => {
-      const result = await dapp.signAndExecuteTransaction({ transaction });
+      const result = await dapp.signAndExecuteTransaction({ transaction: transactionForSigning(transaction) });
       const t = result.Transaction ?? result.FailedTransaction;
       return { digest: t.digest, failed: !!result.FailedTransaction, error: result.FailedTransaction?.status.error?.message };
     },

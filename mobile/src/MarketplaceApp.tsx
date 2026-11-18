@@ -10,6 +10,7 @@ import { api, webAppUrl } from './config';
 import { useWallet, WalletControl } from './wallet';
 import { slushBrowserUrl } from './handoff';
 import { DemoFunding } from './DemoFunding';
+import { serializeForWallet } from './wallet-transaction';
 
 type Tab = 'Storefront' | 'Portfolio' | 'Issuer';
 type WalletData = Awaited<ReturnType<typeof api.readWallet>>;
@@ -79,7 +80,7 @@ export function MarketplaceApp() {
     const subscription = AppState.addEventListener('change', state => { if (state === 'active' && !busy.current) void refresh(); });
     return () => subscription.remove();
   }, [refresh]);
-  useEffect(() => { if (receipt) scroll.current?.scrollTo({ y: 0, animated: false }); }, [receipt]);
+  useEffect(() => { if (receipt || error || pending) scroll.current?.scrollTo({ y: 0, animated: false }); }, [receipt, error, pending]);
 
   const m = sample ? { inventory: demo.stock, price: DEMO_PRICE, proceeds: 'Sample issuer' } : market;
   const usd = sample ? demo.usd : balances?.usd ?? null;
@@ -108,7 +109,7 @@ export function MarketplaceApp() {
     } catch (e) { setError(message(e)); }
   }
   async function execute(build: () => Promise<string>, title: string, purchase?: { units: bigint; cost: bigint }) {
-    if (!canSign || !address || busy.current) return;
+    if (!canSign || !address || busy.current) { setError(busy.current ? 'Another wallet action is pending. Finish or cancel it in Slush.' : 'Wallet connection changed. Reconnect to Sui Testnet and review the purchase again.'); return; }
     busy.current = true;
     const token = generation.current;
     let digest: string | undefined;
@@ -145,7 +146,7 @@ export function MarketplaceApp() {
     else if (address === market?.proceeds) setError('Use a buyer distinct from the proceeds recipient for the atomic settlement demo.');
     else {
       const payment = usd !== null && usd >= cost + UNIT ? cost + UNIT : cost;
-      void execute(async () => api.purchaseTx(units, payment).toJSON(), 'Atomic purchase confirmed', { units, cost });
+      void execute(async () => serializeForWallet(api.purchaseTx(units, payment)), 'Atomic purchase confirmed', { units, cost });
     }
   }
   function act(kind: 'transfer' | 'redeem') {
@@ -158,7 +159,7 @@ export function MarketplaceApp() {
         setSampleHistory(h => [`${kind === 'transfer' ? 'Transfer' : 'Surrendered to escrow'} · ${fmt(n)} dGOLD`, ...h]);
         setNotice('Sample action recorded in this session only.');
       } else if (wallet.native) void openWalletBrowser();
-      else void execute(async () => (kind === 'transfer' ? api.transferTx(n, recipient) : api.redeemTx(n)).toJSON(), kind === 'transfer' ? 'DemoGold transferred' : 'DemoGold surrendered to escrow');
+      else void execute(async () => serializeForWallet(kind === 'transfer' ? api.transferTx(n, recipient) : api.redeemTx(n)), kind === 'transfer' ? 'DemoGold transferred' : 'DemoGold surrendered to escrow');
     } catch (e) { setError(message(e)); }
   }
   async function verifyDigest() {
