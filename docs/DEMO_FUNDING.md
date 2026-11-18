@@ -11,7 +11,7 @@ cd "D:\Coding\Gold Tokenization\mobile-tokenization-app"
 npm.cmd run demo
 ```
 
-Keep that terminal running. This starts a local Testnet issuer service and the Expo web app at `http://localhost:8081`. If a web server is already running there, it is preserved; reload the existing Aurum tab. If that port belongs to a different app, stop that app and run Aurum's `npm run web` from `mobile/`.
+Keep that terminal running. This starts a local Testnet issuer service and the Expo web app at `http://localhost:8081`. If a web server is already running there, it is preserved; reload the existing Gold tab. If that port belongs to a different app, stop that app and run the app's `npm run web` from `mobile/`.
 
 The service requires the existing issuer CLI account to be active. It checks the deployed issuer address and always invokes the CLI with `--client.env testnet`. No new wallet is created, and no private key is copied out of the user's CLI keystore. If you changed the active account, switch back to the issuer shown in `deployments/testnet.json` before starting. The issuer needs faucet SUI for setup/funding gas.
 
@@ -20,7 +20,7 @@ On first start, the service reads marketplace inventory. Existing inventory is p
 ## Buyer flow
 
 1. Exit sample mode and connect your separate Slush buyer wallet on Testnet.
-2. Click **Get 250 demo MockUSD**.
+2. Open **Account > Demo funds** and click **Get 250 demo MockUSD**.
 3. Approve the message in Slush. It identifies the wallet, site origin, deployment, fixed amount, expiry and a random challenge. It does not authorize a purchase or spend buyer assets.
 4. The service verifies ownership, submits `fund_buyer` with the issuer capability, waits for confirmation and checks a **250 MockUSD** credit to that buyer in transaction balance changes.
 5. The app shows the funding digest and refreshes balances. A separate public SUI faucet request is attempted automatically for the buyer's gas. Faucet acceptance is not a promise of immediate delivery; use the SUI faucet link if rate limits prevent it.
@@ -54,4 +54,4 @@ node scripts/demo-faucet.mjs --check
 
 ## Validation
 
-Automated tests use real in-memory wallet signatures and a fake on-chain submission adapter. They cover fixed amounts, ownership, origins, expiry, replay, concurrent claims, persistent limits, uncertain submissions and one-time inventory preparation. These are service behavior tests, not live Testnet claim evidence. A real connected-wallet claim still needs to be performed in the user's network-enabled session.
+Automated tests use real in-memory wallet signatures and a fake on-chain submission adapter. They cover fixed amounts, ownership, origins, expiry, replay, concurrent claims, persistent limits, uncertain submissions and one-time inventory preparation. These are service behavior tests, not live Testnet claim evidence. The local persistent record contains one confirmed claim; this is service-record evidence, not a purchase proof. A successful real purchase digest and iPhone wallet flow remain unverified.

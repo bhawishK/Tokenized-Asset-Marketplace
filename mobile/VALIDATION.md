@@ -1,5 +1,22 @@
 # Expo migration validation
 
+## Repository handoff - 2026-11-18
+
+Final checks for this handoff: 39 local tests pass; Move build succeeds and all 7 Move tests pass; Expo type check and web export pass; legacy Vite production build passes after replacing a stale ignored installed SDK folder with the already-installed matching Expo SDK 2.39.1. The source lockfile was reconciled offline. Public configuration creation and preservation were smoke-tested in a temporary fixture. These checks do not claim a fresh network install or live Testnet purchase.
+
+Added actual Expo web screenshots in docs/screenshots, captured at a 430 x 1000 CSS-pixel phone viewport. The browser was driven through Account > Try sample mode, Buy Gold > Review purchase > Run sample purchase, then Portfolio and Account. These captures show a disconnected wallet and explicitly labelled sample balances/activity; no transaction was signed or submitted. Headless browser capture with installed Edge succeeded after the interactive computer-use pipe was unavailable. This supersedes earlier entries saying screenshots were unavailable. Native iPhone signing remains unverified.
+
+The root README now describes the three tabs, fresh-clone setup, complete loopback-only issuer service plus Expo startup, separate component commands, Testnet publishing, gas funding and phone/native limitations. Added configure:demo to create public local env files without replacing existing files. The root lockfile now matches the pinned Sui SDK 2.39.1 using the already committed Expo lock metadata; npm completed an offline package-lock-only reconciliation and a dry-run clean-install check. This is not a fresh network installation.
+
+
+
+## Three-tab simplification - 2026-11-18
+
+Replaced the marketing hero, top tabs and repeated project copy with persistent Buy Gold, Portfolio and Account tabs. Funding and wallet setup live in Account; issuer tools, digest lookup and gold actions use progressive disclosure. Added system light/dark palettes, 17-point body copy, 50-point action controls and a scrollable confirmation modal. No contract or authority changes.
+
+Checks: 39 local tests pass, Expo TypeScript passes, web export passes, Android JavaScript/Hermes export passes. A fixture-based server render of the actual component passed for all three tabs, checking that purchase content, activity and funding are scoped to the correct tab and issuer actions are initially collapsed. This does not validate browser layout or wallet interaction. Computer-use preview failed because the native pipe was unavailable; no screenshot or device runtime verification is claimed. Contrast calculations and layout rationale are in ../docs/DESIGN.md. Earlier entries are historical.
+
+
 ## Stale web-manifest configuration fix
 
 The running Metro bundle contained correct `EXPO_PUBLIC_PACKAGE_ID` / `EXPO_PUBLIC_MARKETPLACE_ID` environment values, but its cached `APP_MANIFEST` extras had empty IDs. The client read only `Constants.expoConfig.extra`, producing the missing-deployment warning and disabling funding. A regression test against the actual client configuration module failed before the fix. The client now prefers direct `process.env.EXPO_PUBLIC_*` references, which Metro transforms to its public environment, and retains manifest fallback when those values are absent.

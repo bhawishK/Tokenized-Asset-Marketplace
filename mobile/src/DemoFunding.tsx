@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, useColorScheme, Text, View } from 'react-native';
 import { api, demoFaucetUrl } from './config';
 import { useWallet } from './wallet';
 import { fundingBlockReason } from './funding-state';
@@ -28,6 +28,7 @@ async function request<T>(route: string, body?: object, timeout = 5000): Promise
 
 export function DemoFunding({ disabled, onBusy, onFunded }: Props) {
   const wallet = useWallet();
+  const s = useColorScheme() === 'dark' ? darkStyles : lightStyles;
   const [health, setHealth] = useState<Health | null>(null);
   const [status, setStatus] = useState('Checking the local funding service…');
   const [error, setError] = useState('');
@@ -89,28 +90,31 @@ export function DemoFunding({ disabled, onBusy, onFunded }: Props) {
     serviceReady: !!health, working, otherActionPending: disabled,
   });
   return <View style={s.panel}>
-    <Text style={s.eyebrow}>GET STARTED ON TESTNET</Text>
-    <Text style={s.title}>Get demo assets in this wallet.</Text>
-    <Text style={s.copy}>Connect Slush, then request 250 MockUSD. Your wallet address is filled automatically. Approve an ownership message; the local issuer pays for the funding transaction. No address needs to be pasted into chat or a terminal.</Text>
+    <Text style={s.title}>Demo funds</Text>
+    <Text style={s.copy}>Get 250 MockUSD for a demo purchase. Approve a wallet ownership message; the issuer funds your connected account.</Text>
     <Text accessibilityLiveRegion="polite" style={s.status}>{status}</Text>
     {!!error && <Text accessibilityRole="alert" style={s.error}>{error}</Text>}
-    <Pressable accessibilityRole="button" accessibilityState={{ disabled: !!blockedReason }} disabled={!!blockedReason} onPress={() => void claim()} style={[s.button, !!blockedReason && s.disabled]}>
+    <Pressable accessibilityRole="button" accessibilityState={{ disabled: !!blockedReason }} disabled={!!blockedReason} onPress={() => void claim()} style={({ pressed }) => [s.button, !!blockedReason && s.disabled, pressed && !blockedReason && { opacity: 0.7 }]}>
       <Text style={s.buttonText}>{working ? 'Funding in progress…' : 'Get 250 demo MockUSD'}</Text>
     </Pressable>
     {blockedReason && <Text accessibilityLiveRegion="polite" style={s.status}>{blockedReason}</Text>}
     {!wallet.address && <Text style={s.copy}>First select Connect wallet at the top of this page and connect Slush. This button will use that wallet automatically.</Text>}
     <View style={s.links}>
       <Pressable accessibilityRole="button" onPress={() => void check()} disabled={working || disabled}><Text style={s.link}>Retry funding connection</Text></Pressable>
-      <Pressable accessibilityRole="link" onPress={() => void Linking.openURL('https://faucet.sui.io/').catch(() => setError('Could not open the public Sui faucet.'))}><Text style={s.link}>Testnet SUI faucet ↗</Text></Pressable>
+      <Pressable accessibilityRole="link" onPress={() => void Linking.openURL('https://faucet.sui.io/?network=testnet').catch(() => setError('Could not open the public Sui faucet.'))}><Text style={s.link}>Testnet SUI faucet ↗</Text></Pressable>
     </View>
-    <Text style={s.small}>One claim per buyer in the local service's persistent record, up to 100 total claims. MockUSD and SUI are separate Testnet assets. This funding receipt is not a purchase receipt.</Text>
+    <Text style={s.small}>One claim per wallet, up to 100 claims in this local service. MockUSD is for purchases; Testnet SUI is for gas.</Text>
   </View>;
 }
 function message(e: unknown) { return e instanceof Error ? e.message : String(e); }
-const s = StyleSheet.create({
-  panel: { borderWidth: 1, borderColor: '#d6dfc4', backgroundColor: '#f0f4e7', borderRadius: 12, padding: 23, gap: 12 },
-  eyebrow: { fontSize: 9, letterSpacing: 1.7, fontWeight: '600', color: '#7a896e' }, title: { fontSize: 21, color: '#213b33', letterSpacing: -.4 },
-  copy: { fontSize: 12, lineHeight: 22, color: '#64775b' }, status: { fontSize: 12, lineHeight: 21, color: '#4f6c3b' }, error: { fontSize: 12, lineHeight: 21, color: '#a0523e' },
-  button: { minHeight: 46, backgroundColor: '#254936', borderRadius: 7, padding: 14, alignItems: 'center', justifyContent: 'center' }, buttonText: { color: '#f6f8ed', fontSize: 12, fontWeight: '600' }, disabled: { opacity: .45 },
-  links: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 }, link: { color: '#617e4f', fontSize: 11, paddingVertical: 6 }, small: { fontSize: 10, lineHeight: 18, color: '#829075' },
-});
+function createStyles(dark: boolean) {
+  const c = dark ? { background: '#121417', surface: '#1d2025', text: '#f2f3f5', muted: '#b0b6c0', accent: '#e4c479', line: '#41464f' } : { background: '#f4f5f7', surface: '#ffffff', text: '#1b1f26', muted: '#59616e', accent: '#765416', line: '#d9dde3' };
+  return StyleSheet.create({
+    panel: { borderWidth: StyleSheet.hairlineWidth, borderColor: c.line, backgroundColor: c.surface, borderRadius: 20, padding: 22, gap: 18 },
+    title: { fontSize: 20, color: c.text, fontWeight: '600' }, copy: { fontSize: 17, lineHeight: 26, color: c.muted }, status: { fontSize: 15, lineHeight: 23, color: c.text }, error: { fontSize: 15, lineHeight: 23, color: c.text, borderLeftWidth: 3, borderColor: c.accent, paddingLeft: 12 },
+    button: { minHeight: 50, backgroundColor: c.accent, borderRadius: 12, padding: 14, alignItems: 'center', justifyContent: 'center' }, buttonText: { color: c.surface, fontSize: 16, fontWeight: '600', textAlign: 'center' }, disabled: { opacity: .45 },
+    links: { gap: 8 }, link: { color: c.accent, fontSize: 15, paddingVertical: 14 }, small: { fontSize: 13, lineHeight: 20, color: c.muted },
+  });
+}
+const lightStyles = createStyles(false);
+const darkStyles = createStyles(true);

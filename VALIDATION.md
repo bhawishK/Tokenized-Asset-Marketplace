@@ -1,5 +1,15 @@
 # Validation record
 
+## Repository handoff - 2026-11-18
+
+Final checks for this handoff: 39 local tests pass; Move build succeeds and all 7 Move tests pass; Expo type check and web export pass; legacy Vite production build passes after replacing a stale ignored installed SDK folder with the already-installed matching Expo SDK 2.39.1. The source lockfile was reconciled offline. Public configuration creation and preservation were smoke-tested in a temporary fixture. These checks do not claim a fresh network install or live Testnet purchase.
+
+Added actual Expo web screenshots in docs/screenshots, captured at a 430 x 1000 CSS-pixel phone viewport. The browser was driven through Account > Try sample mode, Buy Gold > Review purchase > Run sample purchase, then Portfolio and Account. These captures show a disconnected wallet and explicitly labelled sample balances/activity; no transaction was signed or submitted. Headless browser capture with installed Edge succeeded after the interactive computer-use pipe was unavailable. This supersedes earlier entries saying screenshots were unavailable. Native iPhone signing remains unverified.
+
+The root README now describes the three tabs, fresh-clone setup, complete loopback-only issuer service plus Expo startup, separate component commands, Testnet publishing, gas funding and phone/native limitations. Added configure:demo to create public local env files without replacing existing files. The root lockfile now matches the pinned Sui SDK 2.39.1 using the already committed Expo lock metadata; npm completed an offline package-lock-only reconciliation and a dry-run clean-install check. This is not a fresh network installation.
+
+
+
 ## Wallet confirmation fix ? 2026-11-18
 
 Reproduced the pre-wallet exception with the installed SDK: calling toJSON() on the purchase PTB raised 'Sender must be set to resolve CoinWithBalance'. The Expo boundary now preserves that intent while serializing, then reconstructs the transaction in the web wallet adapter so dApp Kit supplies its connected sender and Testnet client before resolution. Transfers and redemption use the same path. Pending/error feedback scrolls into view, and a changed connection produces an explicit error rather than a silent execute return.

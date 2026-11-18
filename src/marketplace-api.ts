@@ -33,12 +33,13 @@ async function readMarket(): Promise<MarketState> {
   return { inventory: BigInt(m.inventory), price: BigInt(m.price), proceeds: m.proceeds };
 }
 async function readWallet(owner: string) {
-  const [usd, gold, caps] = await Promise.all([
+  const [usd, gold, caps, sui] = await Promise.all([
     client.getBalance({ owner, coinType: USD }), client.getBalance({ owner, coinType: GOLD }),
     client.listOwnedObjects({ owner, type: `${PACKAGE}::marketplace::IssuerCap`, include: { content: true }, limit: 50 }),
+    client.getBalance({ owner, coinType: '0x2::sui::SUI' }),
   ]);
   const cap = caps.objects.find(o => CapBCS.parse(o.content).marketplace === MARKET);
-  return { usd: BigInt(usd.balance.balance), gold: BigInt(gold.balance.balance), cap: cap?.objectId ?? null };
+  return { sui: BigInt(sui.balance.balance), usd: BigInt(usd.balance.balance), gold: BigInt(gold.balance.balance), cap: cap?.objectId ?? null };
 }
 async function readActivity(owner: string | null): Promise<{ activity: Activity[]; requests: Redemption[]; limited: boolean }> {
   // Bounded recent module feed. Transparently labeled in the UI; not a full indexer.

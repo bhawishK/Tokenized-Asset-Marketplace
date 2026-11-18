@@ -14,7 +14,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "node --test tests/*.test.mjs",
-    "proof": "node scripts/prove-atomicity.mjs"
+    "proof": "node scripts/prove-atomicity.mjs",
+    "configure:demo": "node scripts/configure-demo.mjs"
   },
   "dependencies": {
     "@mysten/dapp-kit-react": "2.1.36",

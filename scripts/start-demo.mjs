@@ -19,7 +19,7 @@ funding.on('message', async message => {
   try {
     const existing = await fetch('http://localhost:8081', { signal: AbortSignal.timeout(2000) });
     if (existing.ok) {
-      console.log('A web server is already running at http://localhost:8081. Reload your existing Aurum tab to use demo funding.');
+      console.log('A web server is already running at http://localhost:8081. Reload your existing Gold tab to use demo funding.');
       return;
     }
   } catch { /* Start Expo when no web server is running. */ }

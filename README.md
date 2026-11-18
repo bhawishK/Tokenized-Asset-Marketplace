@@ -1,66 +1,148 @@
-# Aurum
+# Tokenized Asset Marketplace
 
-**Expo migration:** a shared iOS, Android and web app is now in [`mobile/`](mobile/README.md). It shares the amount rules and chain API with this Vite app. Native signing currently hands off to the hosted Expo web app inside Slush's browser. See its README for run commands and [actual validation limits](mobile/VALIDATION.md).
+A fixed-price marketplace for simulated gold on **Sui Testnet**, built with **Sui Move, TypeScript, React Native and Expo**. The current app has three tabs: **Buy Gold**, **Portfolio** and **Account**. A purchase exchanges 100 MockUSD for 1 DemoGold atomically; the receipt checks payment and delivery under one transaction digest.
 
-**Two assets. One transaction. Independently verifiable settlement.**
+All tokens are simulated, with **no physical backing, monetary value or physical redemption**. Testnet SUI pays gas separately from MockUSD.
 
-A fixed-price marketplace for simulated gold on **Sui Testnet**, built as a university blockchain project and software engineering portfolio. Buyers exchange MockUSD for DemoGold in one Move call. The receipt reads confirmed network balance changes and links to the same transaction in a Testnet explorer.
+## Screenshots
 
-Both assets are simulations with **no physical backing, monetary value, investment purpose or physical redemption**. This is a storefront, not an exchange order book. Network gas uses Testnet SUI, separate from MockUSD.
+These are actual phone-sized captures of the web app in **sample mode**, not native iPhone screenshots or on-chain purchase evidence. The Portfolio image follows a sample purchase. [Capture details](docs/screenshots/README.md).
 
-> **Current handoff, 2026-11-18:** fourteen local tests, Expo type checking, web/Android/iOS JavaScript exports and all seven Move tests pass. The user also completed the normal Move build. The Expo web app runs locally at `http://localhost:8081`. Browser click testing, native device runtime, wallet connection and Testnet deployment remain unverified. The legacy Vite dependency alignment is recorded separately. No package ID or transaction digest is invented. Original results and contract follow-up: [VALIDATION.md](VALIDATION.md); current Expo results: [mobile/VALIDATION.md](mobile/VALIDATION.md).
+<p>
+  <img src="docs/screenshots/buy-gold.png" width="230" alt="Buy Gold tab in sample mode, showing fixed price and purchase controls" />
+  <img src="docs/screenshots/portfolio.png" width="230" alt="Portfolio after a sample purchase, showing illustrative holdings and activity" />
+  <img src="docs/screenshots/account.png" width="230" alt="Account tab with a disconnected wallet and Testnet gas guidance" />
+</p>
 
-## Run locally
+## What works and what still needs verification
 
-For the complete **Expo web + connected-wallet funding** flow, start from the repository root with `npm.cmd run demo`. Connect Slush and use **Get 250 demo MockUSD**; no buyer address needs to be pasted into chat or a terminal. The local issuer service prepares an empty marketplace once, verifies ownership messages, confirms fixed claims and attempts buyer gas funding. See [demo funding setup and limits](docs/DEMO_FUNDING.md). It requires the already configured Testnet issuer CLI account and network access.
+- Move contracts implement inventory-funded atomic purchases with change, issuer capabilities, transfers and escrow-then-burn redemption. **7 Move tests pass.**
+- Public Testnet package and marketplace IDs, publication digest and initialization digest are recorded in [deployments/testnet.json](deployments/testnet.json), based on the issuer's CLI transcripts.
+- **39 local tests**, the Expo type check, web production export and Android JavaScript export pass. The screenshots exercise the sample browser flow.
+- The local service has recorded a confirmed demo funding claim. A successful real purchase digest and the insufficient-payment Testnet dry-run proof are still outstanding. No latency claim is made.
+- Native Expo is read-only with an external wallet handoff. **A working iPhone signing flow has not been verified.** HTTP LAN preview is not a complete mobile wallet/funding deployment.
 
-Requirements: Node.js 24+, npm, and (for contracts) the Testnet-compatible Sui CLI. Commands below use PowerShell; `npm.cmd` avoids PowerShell's script execution policy issue on Windows. On macOS/Linux use `npm`.
+Detailed evidence and historical results: [VALIDATION.md](VALIDATION.md), [mobile/VALIDATION.md](mobile/VALIDATION.md).
 
-```powershell
-cd "D:\Coding\Gold Tokenization\mobile-tokenization-app"
-npm.cmd install
-Copy-Item .env.example .env.local
-npm.cmd run dev
-```
+## Launch the app
 
-Open the Vite URL, normally **http://127.0.0.1:5173**. Without real deployment IDs, the app displays setup guidance and disables network purchase operations. **Explore a sample rehearsal** enables interactive browser-only balances. Those actions never generate a digest, explorer link or claim of on-chain settlement. Sample state resets on reload.
+Use **Node.js 24.3 or newer**, npm and an internet connection. Windows commands below use PowerShell and npm.cmd to avoid script-policy errors. On macOS/Linux, use npm instead.
 
-Dependencies are pinned in `package.json`. A Vite `package-lock.json` was subsequently generated outside the agent turn and has been preserved. The root SDK pin is now aligned to the installed dApp Kit core's required 2.39.1; run `npm install` to refresh that lock before using `npm ci`. Offline regeneration was blocked. The Expo app has its own package manifest and still needs a successful installation and generated lockfile. There was no existing Git repository convention to preserve.
+### 1. Install and configure a fresh clone
 
-The interface uses forest green, warm ivory and gold, with responsive storefront, portfolio and issuer views. Gold bars are CSS artwork. A screenshot is intentionally not included because the actual frontend could not be built or browser-tested here; capture the running app after validation rather than publishing a mock screenshot.
+~~~powershell
+git clone https://github.com/bhawishK/Tokenized-Asset-Marketplace.git
+cd Tokenized-Asset-Marketplace
+npm.cmd ci
+npm.cmd --prefix mobile ci
+npm.cmd run configure:demo
+~~~
+
+The configure command copies only public Testnet IDs from deployments/testnet.json into ignored .env.local and mobile/.env.local files. Existing environment files are preserved. No wallet, private key or funding transaction is created. If using your own deployment, update deployments/testnet.json first. Both dependency lockfiles are committed.
+
+### 2. Explore the interface without issuer access
+
+~~~powershell
+npm.cmd --prefix mobile run web -- --host localhost --port 8081
+~~~
+
+Open **http://localhost:8081**, then **Account > Try sample mode**. Buy Gold, transfer and redemption rehearsals use session-only sample balances. This route needs no issuer signer or Sui CLI. Ctrl+C stops the server.
+
+### 3. Start the entire local Testnet demo
+
+For the connected-wallet funding flow, install the [official Sui Testnet CLI](https://docs.sui.io/getting-started/onboarding/sui-install), securely configure a dedicated issuer in its local keystore, and fund that issuer with Testnet SUI. The active CLI account must own the IssuerCap for the deployment in deployments/testnet.json. **Cloning the repository does not give you control of the recorded issuer.** Publish your own deployment using the instructions below if you do not own it.
+
+For an issuer that is already configured:
+
+~~~powershell
+sui --version
+sui client switch --env testnet
+$d = Get-Content .\deployments\testnet.json -Raw | ConvertFrom-Json
+sui client switch --address $d.issuerAddress
+sui client gas
+node scripts/demo-faucet.mjs --check
+npm.cmd run demo
+~~~
+
+Keep the terminal open. The one command starts the issuer service at **http://127.0.0.1:8788** and Expo web at **http://localhost:8081**. If Expo is already running at that address, it is reused; reload its tab. Stop an unrelated app yourself if it owns port 8081. The service can seed a previously empty marketplace once, retains issuer keys in the local CLI keystore, and allows one fixed 250 MockUSD claim per buyer in its persistent record. [Funding policy and recovery](docs/DEMO_FUNDING.md).
+
+In the app:
+
+1. **Account:** connect a separate buyer wallet on Sui Testnet. Exit sample mode.
+2. **Account > Demo funds:** select Get 250 demo MockUSD and approve the ownership message. The connected address is used automatically.
+3. **Account:** check SUI for gas. If empty, use Get free Testnet SUI with the same buyer wallet. The service's best-effort faucet request does not guarantee funding.
+4. **Buy Gold:** choose 1 dGOLD, review and approve the transaction in the wallet.
+5. Read the resulting receipt and open its Testnet explorer link. Portfolio refreshes from the network. Funding and purchase receipts are different transactions.
+
+The marketplace contract enforces issuer permissions and price; no client variable grants mint authority. If a transaction was submitted but confirmation failed, check its digest before retrying. Do not delete the service's persistent claim record to retry an uncertain mint.
+
+### Run the components separately
+
+~~~powershell
+# Terminal 1, repository root:
+npm.cmd run demo:funding
+
+# Terminal 2, repository root:
+npm.cmd --prefix mobile run web -- --host localhost --port 8081
+~~~
+
+The original Vite frontend is retained for reference: npm.cmd run dev starts it at http://127.0.0.1:5173. The Expo app is the current interface; running both frontends is unnecessary. The funding service's default trusted origins target Expo on localhost:8081, not every origin.
+
+### Phone preview and native builds
+
+For a phone browser preview on the same Wi-Fi, start a separate LAN server:
+
+~~~powershell
+npm.cmd --prefix mobile run web -- --host lan --port 8082
+~~~
+
+Open the server's HTTP LAN address in Safari or Chrome on your phone, not localhost or the exp:// QR URL. This previews the UI. The issuer service binds to the computer's loopback interface and is unavailable to a phone; **do not expose that signer service publicly**.
+
+For a compatible native development build already installed on the device:
+
+~~~powershell
+npm.cmd --prefix mobile run start:device -- --port 8082
+~~~
+
+For an SDK-compatible Expo Go installation:
+
+~~~powershell
+npm.cmd --prefix mobile run start:go -- --port 8082
+~~~
+
+The app uses **Expo SDK 58**. Store Expo Go must match that SDK; installing an incompatible iPhone version will not load the project. Physical iPhone native builds require applicable Apple signing and provisioning; Windows cannot run a local iOS build. Slush's iPhone app does not automatically give Safari a desktop extension connection. A complete phone purchase deployment needs a public HTTPS Expo web URL, a supported wallet connection and a separate phone-accessible funding design. [Expo compatibility](https://docs.expo.dev/troubleshooting/expo-go-version-mismatch/), [Slush integration](https://sdk.mystenlabs.com/slush-wallet/dapp), [native setup details](mobile/README.md).
+
+For Android with the Android SDK, JDK and an emulator or USB device configured, run npm.cmd --prefix mobile run android. This compiles/installs a development build. Native signing still uses the documented external handoff; a native JavaScript export alone does not prove device runtime support.
 
 ## Architecture
 
-```mermaid
+~~~mermaid
 flowchart LR
-    W[Buyer / issuer wallet] -->|signs Testnet transaction| UI[React + TypeScript / Vite]
-    UI -->|gRPC reads and wallet execution| S[Sui Testnet]
+    W[Buyer wallet] -->|approves message / transaction| UI[Expo app: Buy Gold / Portfolio / Account]
+    UI -->|claim with ownership proof| F[Local issuer service: loopback only]
+    F -->|issuer CLI / protected capability| S[Sui Testnet]
+    UI -->|network reads / buyer transaction| S
     S --> P[Move package]
-    P --> M[Shared Marketplace\nDemoGold inventory / price / proceeds]
-    P --> I[Issuer wallet\nIssuerCap containing both TreasuryCaps]
-    P --> R[Shared RedemptionRequest\nescrow then burn]
-    S -->|confirmed effects + one digest| UI
+    P --> M[Shared marketplace: inventory / price / proceeds]
+    P --> R[Redemption: escrow then burn]
+    S -->|confirmed effects / one purchase digest| UI
     UI --> E[Testnet explorer]
-```
+~~~
 
-`purchase` receives one `Coin<MOCK_USD>`, withdraws DemoGold from the marketplace, sends the fixed price to the stored seller address, returns excess MockUSD and emits a purchase event. All commands commit or abort together. The frontend uses `coinWithBalance` to resolve coin inputs; it normally overpays by 1 mUSD when the balance permits so on-chain change handling is exercised.
-
-The buyer cannot pass a price or proceeds recipient. There is no public mint function without an issuer capability and no purchase-time access to a treasury. Issuance is deliberately centralized and simulated; package upgrades are also an issuer trust assumption while the publisher retains its upgrade capability.
-
-### Source map
+The public purchase function accepts a MockUSD coin and quantity, withdraws issuer-funded DemoGold, sends the fixed price to the stored proceeds recipient, returns change and emits a purchase event. All asset movements commit or abort together. It never receives mint authority. The UI normally includes 1 extra MockUSD when available to exercise change handling.
 
 | Path | Responsibility |
 | --- | --- |
-| `contracts/sources/mock_usd.move` | MockUSD one-time witness and metadata |
-| `contracts/sources/demo_gold.move` | DemoGold one-time witness and metadata |
-| `contracts/sources/marketplace.move` | Inventory, capability, atomic purchase, transfers and redemption |
-| `contracts/tests/marketplace_tests.move` | Seven Move scenarios |
-| `src/marketplace-api.ts` | Shared Testnet gRPC reads, BCS schemas and transaction builders |
-| `src/chain.ts` | Vite environment and wallet adapter for the shared API |
-| `src/domain.ts` | Exact amounts, validation and settlement matching |
-| `src/App.tsx` | Storefront, portfolio, issuer dashboard and receipts |
-| `scripts/seed.ps1` | Issuer-only inventory and buyer funding |
-| `scripts/prove-atomicity.mjs` | Read-only verification of a real receipt and underpayment dry run |
+| mobile/src/MarketplaceApp.tsx | Three-tab Expo interface and confirmed receipts |
+| mobile/src/wallet.web.tsx | Testnet dApp Kit wallet adapter |
+| mobile/src/wallet.tsx | Native read-only account / external handoff |
+| src/marketplace-api.ts | Shared chain reads and transaction builders |
+| src/domain.ts | Exact integer units and settlement verification |
+| contracts/sources/marketplace.move | Purchase, issuer authority and redemption |
+| scripts/start-demo.mjs | Starts local funding and Expo web |
+| scripts/configure-demo.mjs | Public config generation; preserves existing files |
+| scripts/demo-faucet.mjs | Local issuer-funded buyer claims |
+| scripts/prove-atomicity.mjs | Real receipt checks and underpayment dry run |
 
 ## Units and permissions
 
@@ -87,7 +169,7 @@ Initialization consumes both unique TreasuryCaps into a wallet-owned `IssuerCap`
 
 At publication, the two asset TreasuryCaps and the package UpgradeCap initially belong to the publisher. Initialize immediately using the same dedicated issuer account. Retain all privileged capabilities in the issuer wallet; never place them in a shared object or frontend configuration.
 
-The asset modules use the still-supported `coin::create_currency` API for a small, interview-friendly CoinMetadata/OTW model. It is deprecated in favor of `coin_registry::new_currency_with_otw` for new registry integrations. No registry integration is claimed; Move build compatibility remains to be checked with the installed Testnet CLI.
+The asset modules use the still-supported `coin::create_currency` API for a small, interview-friendly CoinMetadata/OTW model. It is deprecated in favor of `coin_registry::new_currency_with_otw` for new registry integrations. No registry integration is claimed; The package builds and all seven Move tests pass with the recorded Testnet CLI version.
 
 ### Redemption lifecycle
 
@@ -106,22 +188,20 @@ suiup install sui@testnet
 sui --version
 ```
 
-The official guide also documents Windows installation options. Record the actual version returned by `sui --version` with your validation results; this environment could not install or run a CLI version.
+The recorded CLI is Sui 1.84.0-9dc25070cf2e. The official guide documents Windows installation. Use the Testnet toolchain and record your actual version.
 
 From `mobile-tokenization-app/`:
 
-```powershell
-Push-Location contracts
-sui move build
-sui move test
-Pop-Location
-node --test tests/domain.test.mjs
-npm.cmd run typecheck
-npm.cmd run build
-npm.cmd run preview
-```
+~~~powershell
+sui move build --path contracts --build-env testnet
+sui move test --path contracts --build-env testnet
+node --test tests/*.test.mjs mobile/tests/*.test.mjs
+npm.cmd --prefix mobile run typecheck
+npm.cmd --prefix mobile run build:web
+npm.cmd --prefix mobile run build:android
+~~~
 
-The Testnet-compatible CLI supplies implicit Sui framework dependencies for this Move 2024 package. Preserve the resulting `Move.lock` after the first successful build. Neither that lockfile nor a build result is fabricated here.
+The Testnet-compatible CLI supplies implicit Sui framework dependencies for this Move 2024 package. Preserve the resulting `Move.lock` after the first successful build. The framework revision is pinned in contracts/Move.lock.
 
 The seven Move tests cover:
 
@@ -135,7 +215,9 @@ The seven Move tests cover:
 
 **An expected-abort Move unit test does not inspect state after the abort.** It establishes the rejection branch, not an independently observed rollback. Use the Testnet dry-run proof below to inspect failure behavior and compare balances before and after. The JavaScript domain tests do not execute Move.
 
-## Publish and seed on Testnet
+## Publish your own deployment on Testnet
+
+Skip publication if you already control the issuer for your configured deployment. The checked-in IDs point to an existing demo, not a shared issuer key. After initializing your own marketplace, update the public packageId, marketplaceId, issuerAddress and issuerCapId in deployments/testnet.json. Retain real publication/initialization digests and remove any stale purchase digest. Then update the public IDs in existing local environment files (configure:demo deliberately does not overwrite them).
 
 Use dedicated **issuer and buyer** test accounts, both funded with faucet SUI. Do not use a personal Mainnet wallet. Wallets handle signatures; the frontend and scripts never request keys or seed phrases.
 
@@ -191,7 +273,7 @@ sui client call --package $packageId --module marketplace --function mint_invent
 sui client call --package $packageId --module marketplace --function fund_buyer --args $issuerCapId 250000000 $buyerAddress --gas-budget 100000000
 ```
 
-Fill `.env.local` with public deployment IDs only, then restart Vite:
+For the legacy Vite app and the proof script, fill .env.local with public IDs; the current Expo app also needs the corresponding EXPO_PUBLIC_PACKAGE_ID and EXPO_PUBLIC_MARKETPLACE_ID in mobile/.env.local. Restart the frontend after changes:
 
 ```dotenv
 VITE_PACKAGE_ID=0xYOUR_64_HEX_PACKAGE_ID
@@ -200,7 +282,7 @@ VITE_MARKETPLACE_ID=0xYOUR_64_HEX_SHARED_MARKETPLACE_ID
 
 Connect the **funded buyer** wallet, select Testnet, review and confirm a 1 dGOLD purchase. The expected net results are **150 mUSD + 1 dGOLD** in the buyer wallet, **100 mUSD** at the issuer proceeds address and **99 dGOLD** in inventory. Copy the digest from the app's confirmed receipt. Verify both assets under that one digest in the explorer.
 
-For issuer UI actions, connect the same issuer account used to initialize. It must hold the wallet-owned `IssuerCap`; entering an issuer address in a text field grants no permissions. The issuer can also complete a pending redemption from the dashboard.
+For issuer UI actions, connect the same issuer account used to initialize. It must hold the wallet-owned `IssuerCap`; entering an issuer address in a text field grants no permissions. The issuer can also complete a pending redemption from Account > Issuer tools.
 
 ## Reproduce the atomicity proof
 
@@ -236,7 +318,7 @@ Before recording: publish, seed 100 dGOLD and 250 mUSD, fund both wallets with f
 
 | Time | Show and say |
 | --- | --- |
-| 0–12 s | Show the Testnet/simulated-assets label. “Aurum demonstrates atomic settlement between two Move assets. These tokens have no value or physical backing.” |
+| 0–12 s | Show the Testnet/simulated-assets label. “This app demonstrates atomic settlement between two Move assets. These tokens have no value or physical backing.” |
 | 12–22 s | Show buyer 250 mUSD, 0 dGOLD and inventory 100 dGOLD. “The fixed price is enforced by the contract: 100 MockUSD for one DemoGold.” |
 | 22–40 s | Review 1 dGOLD, confirm in the wallet, wait for the actual result. “Payment, delivery, seller proceeds and change happen in one transaction.” Allow extra time for the network or wallet. |
 | 40–55 s | Show the refreshed 150 mUSD and 1 dGOLD, open the receipt explorer link. “This single digest shows the buyer's dollar debit, seller's dollar credit and buyer's gold credit.” |
@@ -258,17 +340,17 @@ A comparable issuer-backed asset workflow on **Bitcoin's base layer** would requ
 - Wallet chain support is checked and dApp Kit is configured only for Testnet. No Mainnet endpoint is present.
 - Sample mode is session-only and visibly labeled. It provides no issuer privileges and no chain evidence.
 - No oracle, audited reserve, custody integration, legal redemption right, production security audit, wallet sponsorship or public faucet is claimed.
-- No signing account was available through a configured CLI in this session. No Testnet publish or actual atomicity proof was performed.
+- The issuer signs only through its local private CLI configuration. Publication and initialization were supplied in issuer CLI transcripts; a real purchase and atomicity proof are not yet independently verified.
 
 ### Browser smoke checklist after installation
 
-Run `npm run dev` and check desktop and a 390 px mobile viewport. Verify setup guidance without configuration, sample purchase and insufficient-funds feedback, all three navigation views, keyboard-operated review/cancel and Escape, wallet rejection, Testnet guidance, a real successful purchase receipt and refresh, transfer recipient validation, surrender-to-escrow, issuer-only mint/fund/complete actions, and manual digest lookup. Confirm that a viewer cannot activate issuer actions and that a submitted digest remains visible if subsequent reads fail.
+Run npm.cmd --prefix mobile run web and check desktop and a 390 px mobile viewport. Verify setup guidance without configuration, sample purchase and insufficient-funds feedback, all three navigation views, keyboard-operated review/cancel and Escape, wallet rejection, Testnet guidance, a real successful purchase receipt and refresh, transfer recipient validation, surrender-to-escrow, issuer-only mint/fund/complete actions, and manual digest lookup. Confirm that a viewer cannot activate issuer actions and that a submitted digest remains visible if subsequent reads fail.
 
-## Résumé bullet
+## Resume bullet
 
-“Implemented a React/TypeScript and Sui Move prototype for fixed-price tokenized-asset purchases, with capability-gated issuance, atomic payment/delivery logic, escrow-to-burn redemption, confirmed-effects receipt verification and ten passing local domain tests.”
+Built an Expo/React Native and Sui Move marketplace with atomic settlement of two simulated assets, capability-controlled issuance, escrow-to-burn redemption, confirmed-effects receipts, 7 passing Move tests and 39 local frontend/funding tests.
 
-After the Move suite and live Testnet proof pass, update the bullet to include those measured results and link to the actual package and purchase transaction. Do not claim deployment or verified contract behavior before completing that work.
+Link a real purchase transaction only after its effects are verified; the sample screenshots do not establish a live purchase.
 
 ## Official references checked
 
@@ -278,4 +360,4 @@ After the Move suite and live Testnet proof pass, update the bullet to include t
 - [CLI installation](https://docs.sui.io/getting-started/onboarding/sui-install), [client commands](https://www.docs.sui.io/references/cli/client), [Move build/test commands](https://www.docs.sui.io/references/cli/move).
 - [Official Coin implementation](https://github.com/MystenLabs/sui/blob/testnet/crates/sui-framework/packages/sui-framework/sources/coin.move) and [scenario testing](https://www.docs.sui.io/develop/testing-debugging/testing).
 
-SDK choices were checked against the current official documentation in this session. Exact package pins are recorded in `package.json`; peer compatibility and the complete dependency graph still require a successful install and type check.
+SDK choices were checked against official documentation. Exact dependencies and lockfiles are committed for both the root and Expo app. Validation records distinguish successful builds and tests from unverified live transactions.
