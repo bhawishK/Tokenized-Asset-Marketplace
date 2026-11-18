@@ -8,9 +8,11 @@ A fixed-price marketplace for simulated gold on **Sui Testnet**, built as a univ
 
 Both assets are simulations with **no physical backing, monetary value, investment purpose or physical redemption**. This is a storefront, not an exchange order book. Network gas uses Testnet SUI, separate from MockUSD.
 
-> **Current handoff:** source implemented, including an Expo migration. Fourteen local tests and the shared chain/domain TypeScript check pass. Expo downloads are denied in this execution environment, and the Sui CLI is missing. The installed Vite dependency tree also needs the SDK alignment described in [mobile/VALIDATION.md](mobile/VALIDATION.md). Full frontend builds, Move tests and Testnet deployment remain unverified. No package ID or transaction digest is invented. Original results: [VALIDATION.md](VALIDATION.md); migration results: [mobile/VALIDATION.md](mobile/VALIDATION.md).
+> **Current handoff, 2026-11-18:** fourteen local tests, Expo type checking, web/Android/iOS JavaScript exports and all seven Move tests pass. The user also completed the normal Move build. The Expo web app runs locally at `http://localhost:8081`. Browser click testing, native device runtime, wallet connection and Testnet deployment remain unverified. The legacy Vite dependency alignment is recorded separately. No package ID or transaction digest is invented. Original results and contract follow-up: [VALIDATION.md](VALIDATION.md); current Expo results: [mobile/VALIDATION.md](mobile/VALIDATION.md).
 
 ## Run locally
+
+For the complete **Expo web + connected-wallet funding** flow, start from the repository root with `npm.cmd run demo`. Connect Slush and use **Get 250 demo MockUSD**; no buyer address needs to be pasted into chat or a terminal. The local issuer service prepares an empty marketplace once, verifies ownership messages, confirms fixed claims and attempts buyer gas funding. See [demo funding setup and limits](docs/DEMO_FUNDING.md). It requires the already configured Testnet issuer CLI account and network access.
 
 Requirements: Node.js 24+, npm, and (for contracts) the Testnet-compatible Sui CLI. Commands below use PowerShell; `npm.cmd` avoids PowerShell's script execution policy issue on Windows. On macOS/Linux use `npm`.
 

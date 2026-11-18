@@ -13,6 +13,10 @@ function ConnectedProvider({ children }: ProviderProps) {
   const value: WalletState = {
     address: account?.address ?? null, native: false,
     wrongNetwork: !!account && !account.chains.includes('sui:testnet'), setWatchAddress: () => {},
+    signFundingMessage: async message => {
+      const result = await dapp.signPersonalMessage({ message: new TextEncoder().encode(message) });
+      return result.signature;
+    },
     signAndExecute: async transaction => {
       const result = await dapp.signAndExecuteTransaction({ transaction });
       const t = result.Transaction ?? result.FailedTransaction;

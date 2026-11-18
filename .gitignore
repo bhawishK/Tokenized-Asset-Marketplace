@@ -12,6 +12,8 @@ proofs/*.json
 *.keystore
 *.key
 .sui/
+.move-cache/
+.demo-faucet/
 
 # Workspace-wide exclusions retained when moving the Git root.
 **/.npm-cache/

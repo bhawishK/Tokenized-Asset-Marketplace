@@ -1,0 +1,14 @@
+{
+  "network": "testnet",
+  "packageId": "0xc2cc60cb02df3d08b45e7e29f5c7336e14cefcfc9d7c8647fc61d0dfda6048e0",
+  "issuerAddress": "0x081d91bcef05d5e5e478933bf47869416f11ad64e9fbe5676f6528672a0b2f6f",
+  "publishDigest": "GvDQ23YMwsbBkMpjKsVRJcZDzj6jeWCu3MTx4TozDvYT",
+  "mockUsdTreasuryCapId": "0xf0ef6090075aec4487a2981847add30252b5399e2f57b0652c7c2161dec37a60",
+  "demoGoldTreasuryCapId": "0x77971bf96354ecf86c808163a40d44640f310a83638b303e961198cc55eb3b66",
+  "upgradeCapId": "0x59f5d1c79efa76d402a53e59058982ce10f6ed80bd4cc8cc1582ac57a07c43b0",
+  "marketplaceId": "0xa3ee5ffd11ad2b974d8594cab21dbd4f7c10e9b2af191a5daf95c3c1d0db2a00",
+  "issuerCapId": "0xec91fbc9166aff9056788c8bb2e9a4ea0d74a6ea4318f8f0ec2e3bb346b00ad4",
+  "initializeDigest": "EpqV8imv4DZS8hLXeDwoX8jEYwUzncy9nRuovcp8KDDd",
+  "successfulPurchaseDigest": null,
+  "evidence": "Publish and initialization success, object types and ownership supplied in the issuer's CLI transcripts. Both treasury capabilities were wrapped into the issuer-owned IssuerCap. Agent's independent Testnet RPC lookup was blocked by network access. Inventory funding and purchase are not yet verified."
+}

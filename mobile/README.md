@@ -2,9 +2,11 @@
 
 The Expo migration shares React Native screens across all three platforms. It reuses the existing Move contracts, exact integer amount rules and chain API. The original Vite interface remains available at `../` while this migration is validated.
 
-**Status:** source implemented; 14 local tests pass across the shared domain and mobile handoff rules. Shared chain/domain code passes a TypeScript check using the existing installed SDK. Eight Expo TS/TSX files pass syntax checks. **Expo dependencies could not be downloaded (`EACCES`), so no Expo type check, native/web export, emulator or device success is claimed.** See [VALIDATION.md](VALIDATION.md).
+**Status, 2026-11-18:** 14 local tests pass, Expo type checking passes, and web, Android and iOS JavaScript exports pass. The Expo web server runs at `http://localhost:8081`. Browser click testing was blocked by a computer-use approval timeout; emulator/device runtime, wallet connection and Testnet purchases remain unverified. See [VALIDATION.md](VALIDATION.md).
 
 ## Start on the web
+
+**With automatic buyer funding:** run `npm.cmd run demo` from the parent repository root. The website gets the buyer address from Slush and offers **Get 250 demo MockUSD**. No address is needed in chat or PowerShell. The service uses the local issuer CLI account, never browser-held issuer keys. See [the funding guide](../docs/DEMO_FUNDING.md). The commands below start the web interface alone.
 
 Use Node 24.3+ in the repository's `mobile-tokenization-app/mobile/` directory:
 

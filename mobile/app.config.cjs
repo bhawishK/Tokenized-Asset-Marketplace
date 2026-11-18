@@ -9,6 +9,7 @@ module.exports = {
       packageId: process.env.EXPO_PUBLIC_PACKAGE_ID || '',
       marketplaceId: process.env.EXPO_PUBLIC_MARKETPLACE_ID || '',
       webAppUrl: process.env.EXPO_PUBLIC_WEB_APP_URL || '',
+      demoFaucetUrl: process.env.EXPO_PUBLIC_DEMO_FAUCET_URL || 'http://127.0.0.1:8788',
     },
   },
 };

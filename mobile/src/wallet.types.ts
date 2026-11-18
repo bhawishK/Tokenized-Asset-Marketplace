@@ -7,5 +7,6 @@ export type WalletState = {
   setWatchAddress: (address: string) => void;
   // Serialized PTB crosses the platform boundary; SDK instances do not.
   signAndExecute: (transaction: string) => Promise<{ digest: string; failed: boolean; error?: string }>;
+  signFundingMessage: (message: string) => Promise<string>;
 };
 export type ProviderProps = PropsWithChildren;

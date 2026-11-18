@@ -2,13 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import type { PropsWithChildren } from 'react';
+import type { ComponentRef, PropsWithChildren } from 'react';
 import type { Activity, MarketState, Redemption } from '../../src/marketplace-api';
 import { UNIT, DEMO_PRICE, costOf, explorer, formatUnits as fmt, parseUnits, purchaseIssue, short, validAddress, verifySettlement } from '../../src/domain';
 import type { Movement } from '../../src/domain';
 import { api, webAppUrl } from './config';
 import { useWallet, WalletControl } from './wallet';
 import { slushBrowserUrl } from './handoff';
+import { DemoFunding } from './DemoFunding';
 
 type Tab = 'Storefront' | 'Portfolio' | 'Issuer';
 type WalletData = Awaited<ReturnType<typeof api.readWallet>>;
@@ -43,7 +44,7 @@ export function MarketplaceApp() {
   const [review, setReview] = useState(false);
   const busy = useRef(false);
   const generation = useRef(0);
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
   const address = wallet.address;
 
   const refresh = useCallback(async () => {
@@ -163,6 +164,10 @@ export function MarketplaceApp() {
   }
   const safe = (fn: () => void) => { setError(''); try { fn(); } catch (e) { setError(message(e)); } };
   const navigate = (next: Tab) => { setTab(next); setError(''); setNotice(''); };
+  const fundingBusyChanged = useCallback((value: boolean) => {
+    busy.current = value;
+    setPending(value ? 'Demo funding in progress…' : '');
+  }, []);
 
   return <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
     <StatusBar style="dark" />
@@ -172,7 +177,11 @@ export function MarketplaceApp() {
     <ScrollView ref={scroll} contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
       <View style={s.container}>
         <View style={s.modeRow}><Text style={s.eyebrow}>ATOMIC OWNERSHIP / SUI</Text><Button text={sample ? 'Exit sample' : 'Try sample'} quiet disabled={!!pending} onPress={() => {setSample(v => !v); setReview(false);}} /></View>
-        {sample && <Banner title="Sample rehearsal" text="All balances and actions are illustrative and session-only. No assets move on-chain." />}
+        {sample && <View style={{ gap: 12 }}><Banner title="Sample rehearsal" text="All balances and actions are illustrative and session-only. No assets move on-chain." /><Button secondary text="Exit sample and get Testnet demo funds" disabled={!!pending} onPress={() => { setSample(false); setTab('Storefront'); }} /></View>}
+        {!sample && !wallet.native && <DemoFunding disabled={!!pending} onBusy={fundingBusyChanged} onFunded={digest => {
+          setReceipt({ title: 'Demo MockUSD funding confirmed', digest, changes: [], note: 'The local issuer verified a 250 MockUSD credit to the connected buyer. This is a funding receipt; make a purchase to see atomic payment and gold delivery.' });
+          void refresh();
+        }} />}
         {!sample && !api.configured && <Banner title="Testnet deployment needed" text="Configure the public package and marketplace IDs in mobile/.env.local and restart Expo. You can explore the sample interface now." />}
         {!sample && wallet.wrongNetwork && <Banner title="Select Sui Testnet" text="This app only requests Testnet signatures. Switch to Testnet in the connected wallet." />}
         {!sample && wallet.native && <Panel><Text style={s.sectionTitle}>Watch your Testnet account</Text><Text style={s.copy}>A watched address is read-only, not a connected signer. Purchases and issuer operations are approved in Slush’s app browser using the web version of this app.</Text><Field label="Public Sui address" value={watchInput} onChange={setWatchInput} address /><Button text="Watch address" onPress={() => safe(() => {if (!validAddress(watchInput)) throw new Error('Enter a full nonzero Sui address.'); wallet.setWatchAddress(watchInput.toLowerCase());})} disabled={!api.configured || !!pending} /><Button quiet text="Open app in Slush wallet ↗" onPress={() => void openWalletBrowser()} disabled={!!pending} /></Panel>}

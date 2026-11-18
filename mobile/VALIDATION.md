@@ -1,5 +1,39 @@
 # Expo migration validation
 
+## Stale web-manifest configuration fix
+
+The running Metro bundle contained correct `EXPO_PUBLIC_PACKAGE_ID` / `EXPO_PUBLIC_MARKETPLACE_ID` environment values, but its cached `APP_MANIFEST` extras had empty IDs. The client read only `Constants.expoConfig.extra`, producing the missing-deployment warning and disabling funding. A regression test against the actual client configuration module failed before the fix. The client now prefers direct `process.env.EXPO_PUBLIC_*` references, which Metro transforms to its public environment, and retains manifest fallback when those values are absent.
+
+All **37 local tests**, Expo type checking and the web export pass after the fix. The actual served configuration module was replayed against its served public environment with empty manifest extras and resolved the correct real package and marketplace IDs. This verifies configuration resolution, not a live wallet claim or purchase.
+
+## Connected-wallet funding follow-up
+
+Added the web **Get 250 demo MockUSD** flow and a loopback-only issuer service. The buyer address comes from Slush, is proven with a signed personal-message challenge, and is never requested in chat or a PowerShell variable. The service retains mint authority in the issuer's CLI keystore, fixes the amount, bounds/reserves persistent claims and verifies confirmed Testnet balance changes before reporting a funded claim. Initial empty inventory can be seeded once through the same issuer.
+
+- `node --test tests/*.test.mjs mobile/tests/*.test.mjs` from the repository root: **30 passed**, 0 failed. Uses real in-memory Ed25519 signatures and a fake transaction-submission adapter, plus HTTP boundary tests; it is not a live faucet transaction proof.
+- Expo `npm run typecheck`: **passed**.
+- Expo `npm run build:web`: **passed** with the new funding UI.
+- Expo Android JavaScript/Hermes export: **passed** with the new funding UI; no device runtime claim.
+- `node scripts/demo-faucet.mjs --check`: **passed** against the local issuer CLI/configuration, without signing or submitting a transaction.
+- A real connected-wallet funding claim and purchase remain **unverified**. Run `npm run demo` in the user's network-enabled terminal, connect Slush and use the funding button. No buyer address or private material needs to be sent to the assistant.
+
+## Local run check — 2026-11-18
+
+Contract follow-up: the user's Move build succeeded, and the agent independently reran the Move tests with the cached framework: **7 passed, 0 failed**. `contracts/Move.lock` now pins the framework revision. Testnet deployment and live transaction verification still remain.
+
+Dependencies are now installed. Fixed the React Native `ScrollView` ref type by using `ComponentRef<typeof ScrollView>`.
+
+- `npm run typecheck`: **passed**.
+- Shared domain and handoff tests: **14 passed**, 0 failed.
+- `npm run build:web`: **passed**, production export in `mobile/dist`.
+- `npm run build:android -- --output-dir dist-android`: **passed**, Android JavaScript/Hermes export. This does not establish device runtime behavior or produce an APK.
+- `npm run build:ios -- --output-dir dist-ios`: **passed**, iOS JavaScript/Hermes export. This does not establish device runtime behavior or produce an IPA.
+- Expo web server started at `http://localhost:8081`; HTTP readiness check returned **200**.
+- Browser click testing: **not completed**; computer-use app approval timed out. No successful wallet connection or purchase is claimed.
+- No `.env.local` deployment configuration was present. Network purchase flows still require real Testnet deployment IDs and funded test accounts.
+
+The record below describes the earlier migration session and its limitations at that time.
+
 Observed on Windows, 2026-11-17.
 
 | Check | Observed result |

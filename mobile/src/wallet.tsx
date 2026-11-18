@@ -8,6 +8,7 @@ export function WalletProvider({ children }: ProviderProps) {
   const value: WalletState = {
     address, setWatchAddress, wrongNetwork: false, native: true,
     signAndExecute: async () => { throw new Error('Native signing happens in the external wallet browser.'); },
+    signFundingMessage: async () => { throw new Error('Open the web app in your wallet browser to request demo funds.'); },
   };
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
